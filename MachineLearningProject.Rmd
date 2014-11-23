@@ -2,12 +2,12 @@
 title: "MachineLearningProject"
 author: "Matthew Lessman"
 date: "Saturday, November 22, 2014"
-output: html_document
+output: pdf_document
 ---
 
 ----------------------------------------------------
 
-# instructions 
+# Report Overview
 
 Goal:  predict the manner in which they did the exercise
 
@@ -25,109 +25,83 @@ From the paper:
 
 Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
 
-exactly according to the specification (Class A), 
-throwing the elbows to the front (Class B), 
-lifting the dumbbell only halfway (Class C), 
-lowering the dumbbell only halfway (Class D)
-throwing the hips to the front (Class E).
+* exactly according to the specification (Class A), 
+* throwing the elbows to the front (Class B), 
+* lifting the dumbbell only halfway (Class C), 
+* lowering the dumbbell only halfway (Class D)
+* throwing the hips to the front (Class E).
 
 Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3JozJ2800
 
-
-
-# read in the data into rawTraining and FinalTesting
-```{r, cache = TRUE}
+# Read the Data into rawTraining and finalTesting
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
 rawTraining <- read.csv("pml-training.csv")
 finalTesting <- read.csv("pml-testing.csv")
 ```
 
-# load packages
-```{r}
+# Load Packages
+```{r, message=FALSE, warning=FALSE}
 library(caret)
 library(ggplot2)
 library(randomForest)
 ```
 
-# splitting the data into training and testing
-```{r}
-inTrain <- createDataPartition(y = rawTraining$classe, p = 0.25, list = FALSE)
+# Splitting the Data into Training and Testing Datasets
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+inTrain <- createDataPartition(y = rawTraining$classe, p = 0.75, list = FALSE)
 training <- rawTraining[inTrain,]
 testing <- rawTraining[-inTrain,]
 dim(training)
 dim(testing)
 ```
 
-# reduce dataset further
-```{r}
+# Reduce the Size of the Datasets
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
 training <- training[, c(7:11,37:49, 60:68, 84:86, 102, 113:124, 140, 151:160)]
 testing <- testing[, c(7:11,37:49, 60:68, 84:86, 102, 113:124, 140, 151:160)]
 ```
 
-# check the data:
+# Check the Size of the Dataset:
 ```{r}
 dim(training)
 dim(testing)
 ```
 
-# summary information and exploratory analysis
+# Summary Information and Exploratory Analysis
+```{r}
+str(training)
+```
 
-understand how the data looks
-understanding how the data interacts together
-
-featurePlot(x = training[,c("accel_belt_x","pitch_belt")], y = training$classe, plot = "pairs")
-
-qplot(classe, pitch_belt, data = training)
-
-p2 <- qplot(classe, pitch_belt, data = training, geom = c("boxplot"))
-p2
-
-
-# how you built your model
+# Building the Model
 
 Enable parellel processing:
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(doSNOW)
 cluster <- makeCluster(2)
 registerDoSNOW(cluster)
 ```
 
-
-
 Set the trControl parameter of the train function:
-
 ```{r}
 fitControl <- trainControl(method = "cv", allowParallel = TRUE, number = 2, repeats = 1)
 ```
 
 Using random forest:
-
-```{r, cache = TRUE}
+```{r, cache=TRUE}
 modelFit <- train(training$classe ~ ., data = training, method = "rf", preProcess = "pca", trControl = fitControl, prox = TRUE)
 ```
 
+ConfustionMatrix:
 ```{r}
 confusionMatrix(testing$classe, predict(modelFit, testing))
 ```
 
+Disable parellel processing:
 ```{r}
 stopCluster(cluster)
 ```
 
-* how you used cross validation, 
-* what you think the expected out of sample error is, 
-* why you made the choices you did. 
-* You will also use your prediction model to predict 20 different test cases
-
-# Check Predictions on my Testing Set
-
-```{r}
-pred <- predict(modelFit, testing)
-testing$predRight <- pred == testing$classe
-table(pred, testing$classe)
-```
-
 # Predict the 20 from the Final Testing Set
-
 ```{r}
 finalTesting <- finalTesting[, c(7:11,37:49, 60:68, 84:86, 102, 113:124, 140, 151:160)]
 finalPred <- predict(modelFit, finalTesting)
