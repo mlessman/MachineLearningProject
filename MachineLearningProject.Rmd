@@ -2,7 +2,7 @@
 title: "MachineLearningProject"
 author: "Matthew Lessman"
 date: "Saturday, November 22, 2014"
-output: html_document
+output: pdf_document
 ---
 
 ----------------------------------------------------
