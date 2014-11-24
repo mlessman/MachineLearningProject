@@ -2,7 +2,7 @@
 title: "MachineLearningProject"
 author: "Matthew Lessman"
 date: "Saturday, November 22, 2014"
-output: pdf_document
+output: html_document
 ---
 
 ----------------------------------------------------
@@ -69,7 +69,7 @@ dim(testing)
 
 # Summary Information and Exploratory Analysis
 ```{r}
-str(training)
+table(training$classe)
 ```
 
 # Building the Model
@@ -107,3 +107,8 @@ finalTesting <- finalTesting[, c(7:11,37:49, 60:68, 84:86, 102, 113:124, 140, 15
 finalPred <- predict(modelFit, finalTesting)
 finalPred
 ```
+
+# Results
+
+I chose to use a random forest model because I needed to predict categorical variables.  I used cross validation by setting the parameter in the train function.  The accuracy of the model is 98% and the in sample and out of sample error rates are 2%.
+
